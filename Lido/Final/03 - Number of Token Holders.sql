@@ -62,15 +62,9 @@ daily_net_changes AS (
         COALESCE(dc.net_change, 0) AS net_change
     FROM date_range dr
     LEFT JOIN daily_changes dc ON dr.day = dc.day
-),
-cumulative_token_holders AS (
-    SELECT
-        day,
-        SUM(net_change) OVER (ORDER BY day) AS unique_token_holders
-    FROM daily_net_changes
 )
 SELECT
-    day,
-    unique_token_holders
-FROM cumulative_token_holders
-ORDER BY day
+    CAST(day as date) as Metric_Date,
+    SUM(net_change) OVER (ORDER BY day) AS unique_token_holders
+FROM daily_net_changes
+order by 1

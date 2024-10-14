@@ -41,7 +41,7 @@ matched_data AS (
     ON cs.day <= tv.day
 )
 SELECT 
-    day,
+    cast(day as date) as Metric_Date,
     TOKEN_VOLUME,
     TOKEN_USD_VOLUME,
     CIRCULATING_TOKEN_SUPPLY/1e18 as CIRCULATING_TOKEN_SUPPLY,
@@ -49,4 +49,4 @@ SELECT
     TOKEN_VOLUME / (CIRCULATING_TOKEN_SUPPLY/1e18) AS TOKEN_TURNOVER_CIRCULATING_SUPPLY
 FROM matched_data
 WHERE row_num = 1
-ORDER BY day DESC
+ORDER BY 1 DESC
