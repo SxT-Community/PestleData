@@ -38,11 +38,11 @@ matched_data AS (
     ON cs.day <= DATE(p.HOUR)
 )
 SELECT 
-    HOUR,
+    cast(HOUR as date) as Metric_Date,
     PRICE,
     MARKET_CAP as FULLY_DILUTED_MARKET_CAP,
     CIRCULATING_TOKEN_SUPPLY/1e18,
     PRICE * CIRCULATING_TOKEN_SUPPLY/1e18 AS CIRCULATING_SUPPLY_MARKET_CAP
 FROM matched_data
 WHERE row_num = 1
-ORDER BY HOUR
+ORDER BY 1
