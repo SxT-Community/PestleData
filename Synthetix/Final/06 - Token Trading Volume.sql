@@ -1,7 +1,4 @@
-/*
-In addition to the query below, do the same query with the SNX tokens on Optimism and on the Base chain 
-by changing from ethereum.defi.ez_dex_swaps to optimism.defi.ez_dex_swaps and base.defi.ez_dex_swaps
-*/
+
 
 WITH ETH_TOKEN_VOL AS (
     SELECT
