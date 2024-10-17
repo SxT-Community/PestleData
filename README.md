@@ -13,3 +13,4 @@ Guidelines on the metrics generated, which will be followed unless there is a st
 # Completed
 
 1. LIDO
+2. Synthetix
