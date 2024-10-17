@@ -1,9 +1,6 @@
--- Synth USD on base
--- https://basescan.org/token/0x09d51516F38980035153a554c26Df3C6f51a23C3
--- Diff C-96 : O-112
 
--- Step 1: Get all token transfers with amount changes
-WITH token_transfers AS (
+-- BASE
+WITH token_transfers_base AS (
     SELECT
         BLOCK_TIMESTAMP,
         FROM_ADDRESS AS address,
@@ -25,8 +22,7 @@ WITH token_transfers AS (
         contract_address = LOWER('0x09d51516F38980035153a554c26Df3C6f51a23C3')
 ),
 
--- Step 2: Calculate cumulative balances for each address over time
-cumulative_balances AS (
+cumulative_balances_base AS (
     SELECT
         address,
         BLOCK_TIMESTAMP,
@@ -36,22 +32,20 @@ cumulative_balances AS (
             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
         ) AS cumulative_balance
     FROM
-        token_transfers
+        token_transfers_base
 ),
 
--- Step 3: Assign balance flags
-balance_flags AS (
+balance_flags_base AS (
     SELECT
         address,
         BLOCK_TIMESTAMP,
         cumulative_balance,
         CASE WHEN cumulative_balance > 0 THEN 1 ELSE 0 END AS balance_flag
     FROM
-        cumulative_balances
+        cumulative_balances_base
 ),
 
--- Step 4: Identify balance transitions
-balance_transitions AS (
+balance_transitions_base AS (
     SELECT
         address,
         BLOCK_TIMESTAMP,
@@ -66,62 +60,57 @@ balance_transitions AS (
             ELSE 0
         END AS balance_change
     FROM
-        balance_flags
+        balance_flags_base
 ),
 
--- Step 5: Assign period IDs
-balance_periods AS (
+balance_periods_base AS (
     SELECT
         *,
         SUM(CASE WHEN balance_change = 1 THEN 1 ELSE 0 END) OVER (PARTITION BY address ORDER BY BLOCK_TIMESTAMP) AS period_id
     FROM
-        balance_transitions
+        balance_transitions_base
 ),
 
--- Step 6: Get positive balance periods
-positive_balance_periods AS (
+positive_balance_periods_base AS (
     SELECT
         address,
         period_id,
         MIN(CASE WHEN balance_change = 1 THEN BLOCK_TIMESTAMP END) AS start_time,
         MAX(CASE WHEN balance_change = -1 THEN BLOCK_TIMESTAMP END) AS end_time
     FROM
-        balance_periods
+        balance_periods_base
     GROUP BY
         address,
         period_id
 ),
 
--- Step 7: Get max timestamp
-max_timestamp AS (
-    SELECT MAX(BLOCK_TIMESTAMP) AS max_timestamp FROM cumulative_balances
+max_timestamp_base AS (
+    SELECT MAX(BLOCK_TIMESTAMP) AS max_timestamp_base FROM cumulative_balances_base
 ),
 
--- Step 8: Final positive balance intervals
-positive_balance_intervals AS (
+positive_balance_intervals_base AS (
     SELECT
         address,
         start_time,
-        COALESCE(end_time, (SELECT max_timestamp FROM max_timestamp)) AS end_time
+        COALESCE(end_time, (SELECT max_timestamp_base FROM max_timestamp_base)) AS end_time
     FROM
-        positive_balance_periods
+        positive_balance_periods_base
 ),
 
--- Step 9: Generate calendar dates
-date_range AS (
+date_range_base AS (
     SELECT
         DATE_TRUNC('day', MIN(BLOCK_TIMESTAMP)) AS min_day,
         DATE_TRUNC('day', MAX(BLOCK_TIMESTAMP)) AS max_day
     FROM
-        token_transfers
+        token_transfers_base
 ),
 
-calendar AS (
+calendar_base AS (
     SELECT
         DATEADD(
             day,
             seq_day,
-            (SELECT min_day FROM date_range)
+            (SELECT min_day FROM date_range_base)
         ) AS day
     FROM (
         SELECT
@@ -132,46 +121,30 @@ calendar AS (
     WHERE
         seq_day <= DATEDIFF(
             'day',
-            (SELECT min_day FROM date_range),
-            (SELECT max_day FROM date_range)
+            (SELECT min_day FROM date_range_base),
+            (SELECT max_day FROM date_range_base)
         )
 ),
 
--- Step 10: Count cumulative holders per day
-daily_holders AS (
+daily_holders_base AS (
     SELECT
         c.day,
         COUNT(DISTINCT pbi.address) AS cumulative_holders
     FROM
-        calendar c
+        calendar_base c
     LEFT JOIN
-        positive_balance_intervals pbi
+        positive_balance_intervals_base pbi
     ON
         c.day >= DATE_TRUNC('day', pbi.start_time) AND c.day <= DATE_TRUNC('day', pbi.end_time)
     GROUP BY
         c.day
     ORDER BY
         c.day
-)
+),
 
--- Final result
-SELECT
-    day,
-    cumulative_holders
-FROM
-    daily_holders;
-ORDER BY 
-    day
-;
+-- OPTIMISM
 
-
--- Synth USD on Optimism
--- https://optimistic.etherscan.io/token/0x8c6f28f2f1a3c87f0f938b96d27520d9751ec8d9#code
--- **Diff C-193549 : O-123222
-
-
--- Step 1: Get all token transfers with amount changes
-WITH token_transfers AS (
+token_transfers_opt AS (
     SELECT
         BLOCK_TIMESTAMP,
         FROM_ADDRESS AS address,
@@ -193,8 +166,7 @@ WITH token_transfers AS (
         contract_address = LOWER('0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9')
 ),
 
--- Step 2: Calculate cumulative balances for each address over time
-cumulative_balances AS (
+cumulative_balances_opt AS (
     SELECT
         address,
         BLOCK_TIMESTAMP,
@@ -204,22 +176,20 @@ cumulative_balances AS (
             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
         ) AS cumulative_balance
     FROM
-        token_transfers
+        token_transfers_opt
 ),
 
--- Step 3: Assign balance flags
-balance_flags AS (
+balance_flags_opt AS (
     SELECT
         address,
         BLOCK_TIMESTAMP,
         cumulative_balance,
         CASE WHEN cumulative_balance > 0 THEN 1 ELSE 0 END AS balance_flag
     FROM
-        cumulative_balances
+        cumulative_balances_opt
 ),
 
--- Step 4: Identify balance transitions
-balance_transitions AS (
+balance_transitions_opt AS (
     SELECT
         address,
         BLOCK_TIMESTAMP,
@@ -234,62 +204,57 @@ balance_transitions AS (
             ELSE 0
         END AS balance_change
     FROM
-        balance_flags
+        balance_flags_opt
 ),
 
--- Step 5: Assign period IDs
-balance_periods AS (
+balance_periods_opt AS (
     SELECT
         *,
         SUM(CASE WHEN balance_change = 1 THEN 1 ELSE 0 END) OVER (PARTITION BY address ORDER BY BLOCK_TIMESTAMP) AS period_id
     FROM
-        balance_transitions
+        balance_transitions_opt
 ),
 
--- Step 6: Get positive balance periods
-positive_balance_periods AS (
+positive_balance_periods_opt AS (
     SELECT
         address,
         period_id,
         MIN(CASE WHEN balance_change = 1 THEN BLOCK_TIMESTAMP END) AS start_time,
         MAX(CASE WHEN balance_change = -1 THEN BLOCK_TIMESTAMP END) AS end_time
     FROM
-        balance_periods
+        balance_periods_opt
     GROUP BY
         address,
         period_id
 ),
 
--- Step 7: Get max timestamp
-max_timestamp AS (
-    SELECT MAX(BLOCK_TIMESTAMP) AS max_timestamp FROM cumulative_balances
+max_timestamp_opt AS (
+    SELECT MAX(BLOCK_TIMESTAMP) AS max_timestamp_opt FROM cumulative_balances_opt
 ),
 
--- Step 8: Final positive balance intervals
-positive_balance_intervals AS (
+positive_balance_intervals_opt AS (
     SELECT
         address,
         start_time,
-        COALESCE(end_time, (SELECT max_timestamp FROM max_timestamp)) AS end_time
+        COALESCE(end_time, (SELECT max_timestamp_opt FROM max_timestamp_opt)) AS end_time
     FROM
-        positive_balance_periods
+        positive_balance_periods_opt
 ),
 
--- Step 9: Generate calendar dates
-date_range AS (
+date_range_opt AS (
     SELECT
         DATE_TRUNC('day', MIN(BLOCK_TIMESTAMP)) AS min_day,
         DATE_TRUNC('day', MAX(BLOCK_TIMESTAMP)) AS max_day
     FROM
-        token_transfers
+        token_transfers_opt
 ),
 
-calendar AS (
+calendar_opt AS (
     SELECT
         DATEADD(
             day,
             seq_day,
-            (SELECT min_day FROM date_range)
+            (SELECT min_day FROM date_range_opt)
         ) AS day
     FROM (
         SELECT
@@ -300,45 +265,30 @@ calendar AS (
     WHERE
         seq_day <= DATEDIFF(
             'day',
-            (SELECT min_day FROM date_range),
-            (SELECT max_day FROM date_range)
+            (SELECT min_day FROM date_range_opt),
+            (SELECT max_day FROM date_range_opt)
         )
 ),
 
--- Step 10: Count cumulative holders per day
-daily_holders AS (
+daily_holders_opt AS (
     SELECT
         c.day,
         COUNT(DISTINCT pbi.address) AS cumulative_holders
     FROM
-        calendar c
+        calendar_opt c
     LEFT JOIN
-        positive_balance_intervals pbi
+        positive_balance_intervals_opt pbi
     ON
         c.day >= DATE_TRUNC('day', pbi.start_time) AND c.day <= DATE_TRUNC('day', pbi.end_time)
     GROUP BY
         c.day
     ORDER BY
         c.day
-)
+),
 
--- Final result
-SELECT
-    day,
-    cumulative_holders
-FROM
-    daily_holders;
-ORDER BY 
-    day
-;
+-- ETHEREUM
 
-
-
--- Synth USD on Ethereum
--- https://etherscan.io/token/0x57Ab1ec28D129707052df4dF418D58a2D46d5f51
--- Diff C-14759 : O-14783
-
-WITH balance_history AS (
+balance_history_eth AS (
     SELECT 
         USER_ADDRESS,
         DATE_TRUNC('day', BLOCK_TIMESTAMP) AS day,
@@ -350,15 +300,15 @@ WITH balance_history AS (
     FROM ethereum.core.fact_token_balances
     WHERE CONTRACT_ADDRESS = LOWER('0x57Ab1ec28D129707052df4dF418D58a2D46d5f51') 
 ),
-latest_balances_per_day AS (
+latest_balances_per_day_eth AS (
     SELECT
         USER_ADDRESS,
         day,
         BALANCE
-    FROM balance_history
+    FROM balance_history_eth
     WHERE row_num = 1  -- Get the latest balance for each USER_ADDRESS per day
 ),
-balance_events AS (
+balance_events_eth AS (
     SELECT
         USER_ADDRESS,
         day,
@@ -367,50 +317,75 @@ balance_events AS (
             WHEN BALANCE = 0 AND NVL(LAG(BALANCE) OVER (PARTITION BY USER_ADDRESS ORDER BY day), 0) > 0 THEN -1
             ELSE 0
         END AS balance_change
-    FROM latest_balances_per_day
+    FROM latest_balances_per_day_eth
 ),
-filtered_events AS (
+filtered_events_eth AS (
     SELECT
         day,
         balance_change
-    FROM balance_events
+    FROM balance_events_eth
     WHERE balance_change <> 0
 ),
-daily_changes AS (
+daily_changes_eth AS (
     SELECT
         day,
         SUM(balance_change) AS net_change
-    FROM filtered_events
+    FROM filtered_events_eth
     GROUP BY day
 ),
-min_max_days AS (
+min_max_days_eth AS (
     SELECT
         MIN(day) AS min_day,
         MAX(day) AS max_day
-    FROM daily_changes
+    FROM daily_changes_eth
 ),
-date_range AS (
-    SELECT min_day AS day FROM min_max_days
+date_range_eth AS (
+    SELECT min_day AS day FROM min_max_days_eth
     UNION ALL
     SELECT DATEADD('day', 1, day)
-    FROM date_range
-    WHERE day < (SELECT max_day FROM min_max_days)
+    FROM date_range_eth
+    WHERE day < (SELECT max_day FROM min_max_days_eth)
 ),
-daily_net_changes AS (
+daily_net_changes_eth AS (
     SELECT
         dr.day,
         COALESCE(dc.net_change, 0) AS net_change
-    FROM date_range dr
-    LEFT JOIN daily_changes dc ON dr.day = dc.day
+    FROM date_range_eth dr
+    LEFT JOIN daily_changes_eth dc ON dr.day = dc.day
 ),
-cumulative_token_holders AS (
+cumulative_token_holders_eth AS (
     SELECT
         day,
         SUM(net_change) OVER (ORDER BY day) AS unique_token_holders
-    FROM daily_net_changes
+    FROM daily_net_changes_eth
 )
+
+
+-- Final result
+
 SELECT
+    'ETHEREUM' AS blockchain,
     day,
     unique_token_holders
-FROM cumulative_token_holders
-ORDER BY day;
+FROM cumulative_token_holders_eth
+
+ UNION ALL 
+
+SELECT
+    'OPTIMISM' AS blockchain,
+    day,
+    cumulative_holders
+FROM
+    daily_holders_opt;
+
+UNION ALL
+
+SELECT
+    'BASE' AS blockchain,
+    day,
+    cumulative_holders
+FROM
+    daily_holders_base
+ORDER BY 
+    day
+;
