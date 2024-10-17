@@ -1,4 +1,3 @@
-/* "Synthetix Incentives" for the Synthetix protocol seems redundant -- is there a better name?  */
 WITH ethereum_rewards AS (
     SELECT 
         DATE_TRUNC('day', BLOCK_TIMESTAMP) AS day,
