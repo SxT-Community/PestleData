@@ -1,12 +1,3 @@
-/* What are these?
-
-select block_number, tx_hash, origin_to_address, to_address from ethereum.core.ez_token_transfers where contract_address = lower('0x57Ab1ec28D129707052df4dF418D58a2D46d5f51') and to_address = lower('0xfeefeefeefeefeefeefeefeefeefeefeefeefeef')
-
-select block_number, tx_hash, origin_to_address, to_address from optimism.core.ez_token_transfers where contract_address = lower('0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9') and to_address = lower('0xfeefeefeefeefeefeefeefeefeefeefeefeefeef')
-
-select block_number, tx_hash, origin_to_address, to_address from base.core.ez_token_transfers where contract_address = lower('0x09d51516F38980035153a554c26Df3C6f51a23C3') and (to_address = lower('0x53f1E640C058337a12D036265681bC172e6fB962')  or to_address = lower(‘0x632cAa10A56343C5e6C0c066735840c096291B18’)) 
-*/
-
 WITH eth_fee AS (
     SELECT 
         DATE_TRUNC('day', BLOCK_TIMESTAMP) AS day,
