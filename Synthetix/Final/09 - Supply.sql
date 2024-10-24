@@ -16,8 +16,6 @@ WITH supply_minted_data AS (
 )
 
 SELECT
-  minted / TOTAL_SUPPLY * 52 AS apr,
-  minted / TOTAL_SUPPLY AS percent,
   *
 FROM
   supply_minted_data;
