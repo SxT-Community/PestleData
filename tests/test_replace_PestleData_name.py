@@ -34,7 +34,7 @@ def replace_file_content_and_names(topfolder:Path, find:str, replace:str = 'Pest
     for file in files:
 
         # skip any files that are prefixed with '_'
-        if file.name.startswith('_'): continue
+        if file.name.startswith('_') or file.name in['_.DS_Store']: continue
         
         # read the file contents
         with open(file, 'r') as f:
