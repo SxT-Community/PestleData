@@ -1,4 +1,6 @@
-/*  from our call this morning, running on Dune: */
+/*  from our call this morning, running on Dune: 
+    https://etherscan.io/txsInternal?block=11649002&p=1
+*/
 
 --dune query
 SELECT *
