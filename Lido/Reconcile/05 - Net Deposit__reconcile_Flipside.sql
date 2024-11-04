@@ -1,5 +1,6 @@
 --flipside query
     SELECT
+      block_number,
       block_timestamp AS time,
       sum(CAST(value AS DOUBLE)) AS amount
     FROM
@@ -13,5 +14,7 @@
       AND (LOWER(type) NOT IN ('delegatecall', 'callcode', 'staticcall') OR type IS NULL)
       AND tx_status = 'SUCCESS'
       AND trace_status = 'SUCCESS'
-      AND time LIKE '2021-01-13 20:51%'
-      group by time
+      AND block_timestamp between cast('2021-01-13 20:30:00' AS TIMESTAMP) /* -20min */
+                         and cast('2021-01-13 21:10:00' AS TIMESTAMP) /* +20min */
+      group by 1,2
+      order by 1,2
