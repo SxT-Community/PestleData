@@ -7,8 +7,8 @@ WITH daily_balances AS (
             ORDER BY BLOCK_TIMESTAMP DESC
         ) AS row_num
     FROM ethereum.core.fact_token_balances
-    WHERE lower(USER_ADDRESS) = lower(‘0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B’)
-      AND lower(CONTRACT_ADDRESS) = lower(‘0xc00e94Cb662C3520282E6f5717214004A7f26888’)
+    WHERE lower(USER_ADDRESS) = lower('0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B')
+      AND lower(CONTRACT_ADDRESS) = lower('0xc00e94Cb662C3520282E6f5717214004A7f26888')
 ),
 circulating_supply AS (
     SELECT
@@ -24,7 +24,7 @@ price_data AS (
         PRICE * 1000000000 AS MARKET_CAP
     FROM ethereum.price.ez_prices_hourly
     WHERE CAST(HOUR AS TIME) = '00:00:00' 
-      AND TOKEN_ADDRESS = lower(‘0xc00e94Cb662C3520282E6f5717214004A7f26888’)
+      AND TOKEN_ADDRESS = lower('0xc00e94Cb662C3520282E6f5717214004A7f26888')
 ),
 matched_data AS (
     SELECT 
