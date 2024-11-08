@@ -8,7 +8,7 @@ WITH balance_history AS (
             ORDER BY BLOCK_TIMESTAMP DESC
         ) AS row_num
     FROM ethereum.core.fact_token_balances
-    WHERE CONTRACT_ADDRESS = LOWER(‘0xc00e94Cb662C3520282E6f5717214004A7f26888')
+    WHERE CONTRACT_ADDRESS = LOWER('0xc00e94Cb662C3520282E6f5717214004A7f26888')
 ),
 latest_balances_per_day AS (
     SELECT
