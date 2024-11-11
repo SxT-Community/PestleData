@@ -33,20 +33,24 @@ def replace_file_content_and_names(topfolder:Path, find:str, replace:str = 'Pest
     # apply replacements to all file contents
     for file in files:
 
-        # skip any files that are prefixed with '_'
-        if file.name.startswith('_') or file.name in['_.DS_Store']: continue
-        
-        # read the file contents
-        with open(file, 'r') as f:
-            content = f.read()
+        try: # binary files can't be read this way
 
-        # with all replacements made, write the contents back to the file
-        if find.lower() in content.lower():
-            logger.info(f'Updating content of file: {file.name}')
-            updates['file content'] += 1
-            with open(file, 'w') as f:
-                f.write(insensitive_replace(content, find, replace))
+            # skip any files that are prefixed with '_'
+            if file.name.startswith('_') or file.name in['_.DS_Store']: continue
+            
+            # read the file contents
+            with open(file, 'r') as f:
+                content = f.read()
 
+            # with all replacements made, write the contents back to the file
+            if find.lower() in content.lower():
+                logger.info(f'Updating content of file: {file.name}')
+                updates['file content'] += 1
+                with open(file, 'w') as f:
+                    f.write(insensitive_replace(content, find, replace))
+
+        except Exception as e:
+            logger.error(f'Failed to update content of file: {file.name} ({e})')
 
     # apply replacements to all filenames
     for file in files:
