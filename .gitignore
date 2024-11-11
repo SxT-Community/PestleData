@@ -1,3 +1,4 @@
 # prefix to keep files private:
 _*
+~*.xlsx
 .DS_Store
