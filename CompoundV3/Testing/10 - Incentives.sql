@@ -3,8 +3,8 @@ WITH
 -- rewards_per_day
 days AS (
     SELECT DATE_TRUNC('day', block_timestamp) AS day 
-    FROM arbitrum.core.fact_blocks 
-    WHERE arbitrum.core.fact_blocks.block_number >= 87335214
+    FROM ethereum.core.fact_blocks 
+    WHERE ethereum.core.fact_blocks.block_number >= 11649002
     GROUP BY 1
 ), 
 update_supply_inc AS (
@@ -71,7 +71,7 @@ update_borrow_inc AS (
 ),
 comp_price AS (
     SELECT DATE_TRUNC('day', hour) AS day, AVG(price) AS avg_price
-    FROM arbitrum.price.ez_prices_hourly
+    FROM ethereum.price.ez_prices_hourly
     WHERE symbol = 'COMP' 
       AND hour >= TIMESTAMP '2023-05-04 00:00'
     GROUP BY 1
