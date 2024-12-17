@@ -4,7 +4,6 @@ WITH
 days AS (
     SELECT DATE_TRUNC('day', block_timestamp) AS day 
     FROM ethereum.core.fact_blocks 
-    WHERE ethereum.core.fact_blocks.block_number >= 11649002
     GROUP BY 1
 ), 
 update_supply_inc AS (
