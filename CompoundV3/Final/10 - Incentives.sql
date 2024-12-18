@@ -1,3 +1,5 @@
+-- Used Dune query as reference: https://dune.com/queries/3957425
+
 WITH
 
 -- rewards_per_day
@@ -21,20 +23,24 @@ update_supply_inc AS (
         CAST(cometProxy AS STRING) AS cometProxy
     FROM (
         SELECT 
-            402083333333 AS newBaseTrackingSupplySpeed, 
-            '0xa5edbdd9646f8dff606d7448e414884c7d905dca' AS cometProxy
+            810185185185 AS newBaseTrackingSupplySpeed, 
+            '0xc3d688B66703497DAA19211EEdff47f25384cdc3' AS cometProxy
         UNION ALL
         SELECT 
-            115740740740, 
-            '0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf'
+            405092592592, 
+            '0xA17581A9E3356d9A858b789D68B4d866e593aE94'
         UNION ALL
         SELECT 
-            138888888888, 
-            '0xd98Be00b5D27fc98112BdE293e487f8D4cA57d07'
+            810185185185, 
+            '0x3Afdc9BCA9213A35503b077a6072F3D0d5AB0840'
         UNION ALL
         SELECT 
-            69444444444, 
-            '0x6f7D514bbD4aFf3BcD1140B7344b32f063dEe486'
+            92592592592, 
+            '0x3D0bb1ccaB520A66e607822fC55BC921738fAFE3'
+        UNION ALL
+        SELECT 
+            289351851851, 
+            '0x5D409e56D886231aDAf00c8775665AD0f9897b56'
     )
 ),
 update_borrow_inc AS (
@@ -53,19 +59,23 @@ update_borrow_inc AS (
     FROM (
         SELECT 
             0 AS newBaseTrackingBorrowSpeed, 
-            '0xa5edbdd9646f8dff606d7448e414884c7d905dca' AS cometProxy
+            '0xc3d688B66703497DAA19211EEdff47f25384cdc3' AS cometProxy
         UNION ALL
         SELECT 
             0, 
-            '0x9c4ec768c28520b50860ea7a15bd7213a9ff58bf'
+            '0xA17581A9E3356d9A858b789D68B4d866e593aE94'
         UNION ALL
         SELECT 
             0, 
-            '0xd98Be00b5D27fc98112BdE293e487f8D4cA57d07'
+            '0x3Afdc9BCA9213A35503b077a6072F3D0d5AB0840'
         UNION ALL
         SELECT 
             0, 
-            '0x6f7D514bbD4aFf3BcD1140B7344b32f063dEe486'
+            '0x3D0bb1ccaB520A66e607822fC55BC921738fAFE3'
+        UNION ALL
+        SELECT 
+            0, 
+            '0x5D409e56D886231aDAf00c8775665AD0f9897b56'
     )
 ),
 comp_price AS (
@@ -110,4 +120,5 @@ rewards_per_day AS (
     ORDER BY rpd.day
 )
 SELECT * 
-FROM rewards_per_day;
+FROM rewards_per_day
+ORDER BY DAY DESC;
