@@ -70,3 +70,7 @@ WHERE
     date > DATEADD(day, -1095, DATE_TRUNC('day', CURRENT_TIMESTAMP))  -- 3 years
 ORDER BY
     date DESC;
+
+
+    -- verified the results from https://dune.com/queries/30619
+    -- results matched on 11-12-2024

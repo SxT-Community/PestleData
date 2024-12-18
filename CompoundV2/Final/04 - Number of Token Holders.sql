@@ -73,4 +73,10 @@ SELECT
     day,
     unique_token_holders
 FROM cumulative_token_holders
-ORDER BY day;
+ORDER BY day desc;
+
+
+
+
+-- verified the results from https://etherscan.io/token/0xc00e94cb662c3520282e6f5717214004a7f2688
+-- results matched on 18-12-2024
