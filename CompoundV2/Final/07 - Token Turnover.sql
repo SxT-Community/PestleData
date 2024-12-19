@@ -13,7 +13,7 @@ WITH daily_balances AS (
 circulating_supply AS (
     SELECT
         day,
-        1000000000e18 - BALANCE AS CIRCULATING_TOKEN_SUPPLY
+        10000000000000000000000000 - BALANCE AS CIRCULATING_TOKEN_SUPPLY
     FROM daily_balances
     WHERE row_num = 1
 ),

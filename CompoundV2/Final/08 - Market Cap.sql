@@ -21,7 +21,7 @@ price_data AS (
     SELECT 
         HOUR,
         PRICE,
-        PRICE * 1000000000 AS MARKET_CAP
+        PRICE * 10000000000 AS MARKET_CAP
     FROM ethereum.price.ez_prices_hourly
     WHERE CAST(HOUR AS TIME) = '00:00:00' 
       AND TOKEN_ADDRESS = lower('0xc00e94Cb662C3520282E6f5717214004A7f26888')
