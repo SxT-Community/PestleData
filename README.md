@@ -14,3 +14,4 @@ Guidelines on the metrics generated, which will be followed unless there is a st
 
 1. LIDO
 2. Synthetix
+3. Compound (V2 and V3)
