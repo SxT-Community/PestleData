@@ -1,24 +1,26 @@
--- Same as Compound V2 `Market Cap`
--- https://github.com/SxT-Community/PestleData/blob/main/CompoundV2/Final/08%20-%20Market%20Cap.sql
-
-WITH daily_balances AS (
-    SELECT 
-        DATE_TRUNC('day', BLOCK_TIMESTAMP) AS day,
-        BALANCE,
-        ROW_NUMBER() OVER (
-            PARTITION BY DATE_TRUNC('day', BLOCK_TIMESTAMP)
-            ORDER BY BLOCK_TIMESTAMP DESC
-        ) AS row_num
-    FROM ethereum.core.fact_token_balances
-    WHERE lower(USER_ADDRESS) = lower('0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B')
-      AND lower(CONTRACT_ADDRESS) = lower('0xc00e94Cb662C3520282E6f5717214004A7f26888')
+WITH daily_mint AS (
+  SELECT
+    DATE(block_timestamp) AS date,
+    SUM(amount) AS daily_minted
+  FROM
+    ethereum.core.ez_token_transfers
+  WHERE
+    LOWER(contract_address) = LOWER('0xD533a949740bb3306d119CC777fa900bA034cd52')
+    AND LOWER(from_address) = LOWER('0x0000000000000000000000000000000000000000')
+  GROUP BY
+    DATE(block_timestamp)
 ),
 circulating_supply AS (
-    SELECT
-        day,
-        1000000000e18 - BALANCE AS CIRCULATING_TOKEN_SUPPLY
-    FROM daily_balances
-    WHERE row_num = 1
+  SELECT
+    date,
+    daily_minted,
+    SUM(daily_minted) OVER (
+      ORDER BY
+        date ASC ROWS BETWEEN UNBOUNDED PRECEDING
+        AND CURRENT ROW
+    ) AS circulating_supply
+  FROM
+    daily_mint
 ),
 price_data AS (
     SELECT 
@@ -34,18 +36,18 @@ matched_data AS (
         p.HOUR,
         p.PRICE,
         p.MARKET_CAP,
-        cs.CIRCULATING_TOKEN_SUPPLY,
-        ROW_NUMBER() OVER (PARTITION BY p.HOUR ORDER BY cs.day DESC) AS row_num
+        cs.circulating_supply,
+        ROW_NUMBER() OVER (PARTITION BY p.HOUR ORDER BY cs.date DESC) AS row_num
     FROM price_data p
     LEFT JOIN circulating_supply cs
-    ON cs.day <= DATE(p.HOUR)
+    ON cs.date <= DATE(p.HOUR)
 )
 SELECT 
     HOUR,
     PRICE,
     MARKET_CAP as FULLY_DILUTED_MARKET_CAP,
-    CIRCULATING_TOKEN_SUPPLY/1e18,
-    PRICE * CIRCULATING_TOKEN_SUPPLY/1e18 AS CIRCULATING_SUPPLY_MARKET_CAP
+    circulating_supply/1e18,
+    PRICE * circulating_supply/1e18 AS CIRCULATING_SUPPLY_MARKET_CAP
 FROM matched_data
 WHERE row_num = 1
 ORDER BY HOUR;
