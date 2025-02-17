@@ -1,0 +1,1 @@
+select * from ethereum.core.ez_decoded_event_logs where origin_from_address IN (lower('0x425d16B0e08a28A3Ff9e4404AE99D78C0a076C5A'), lower('0x7a16fF8270133F063aAb6C9977183D9e72835428')) and event_name = 'AddMarket'
