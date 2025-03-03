@@ -1,7 +1,9 @@
 -- Master dashboard reference: https://dune.com/balancer/built-on-balancer
 -- Reference query: https://dune.com/queries/3149076/5252771
--- What I derived from the above query https://dune.com/queries/4769692
+-- What I derived from the above query https://dune.com/queries/4801020
 
+-- Modified query works on Dune but not on Flipside
+-- yet to figure out the tables and columns
 
 WITH query_3144841 AS (
     WITH gyro_pools AS (
