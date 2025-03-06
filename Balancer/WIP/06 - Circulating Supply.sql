@@ -66,3 +66,29 @@ SELECT evt_block_time, daily_supply, locked_supply,
        SUM(daily_supply) OVER (ORDER BY evt_block_time) AS accumulative_supply
 FROM Final_table
 ORDER BY evt_block_time;
+
+
+
+-- -- Replicated https://dune.com/queries/4617844 on Flipside
+
+WITH daily_balances AS (
+    SELECT 
+        DATE_TRUNC('day', BLOCK_TIMESTAMP) AS day,
+        BALANCE,
+        ROW_NUMBER() OVER (
+            PARTITION BY DATE_TRUNC('day', BLOCK_TIMESTAMP)
+            ORDER BY BLOCK_TIMESTAMP DESC
+        ) AS row_num
+    FROM ethereum.core.fact_token_balances
+    WHERE lower(USER_ADDRESS) IN ('0x10A19e7eE7d7F8a52822f6817de8ea18204F2e4f',
+                   '0xCDcEBF1f28678eb4A1478403BA7f34C94F7dDBc5',
+                   '0xB129F73f1AFd3A49C701241F374dB17AE63B20Eb')
+      AND lower(CONTRACT_ADDRESS) = lower('0xba100000625a3754423978a60c9317c58a424e3d')
+)
+
+SELECT
+    day,
+    (10000000000000000000000000 - BALANCE) / 1e18 AS CIRCULATING_TOKEN_SUPPLY
+FROM daily_balances
+WHERE row_num = 1
+ORDER BY day;
