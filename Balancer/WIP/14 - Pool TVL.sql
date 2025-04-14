@@ -1,5 +1,5 @@
 WITH balancer_pools AS (
- 
+  -- Extract each token from the JSON tokens column for Balancer pools.
   SELECT
     pool_address,
     f.value::string AS token
@@ -13,12 +13,13 @@ daily_transfers AS (
     DATE_TRUNC('day', t.block_timestamp) AS day,
     bp.pool_address,
     bp.token,
-    SUM(CASE WHEN t.to_address = bp.pool_address THEN t.amount ELSE 0 END) AS tokens_in,
-    SUM(CASE WHEN t.from_address = bp.pool_address THEN t.amount ELSE 0 END) AS tokens_out
+    SUM(CASE WHEN lower(t.origin_to_address) = lower(bp.pool_address) THEN t.amount ELSE 0 END) AS tokens_in,
+    SUM(CASE WHEN lower(t.origin_from_address) = lower(bp.pool_address) THEN t.amount ELSE 0 END) AS tokens_out
   FROM ethereum.core.ez_token_transfers t
-  JOIN balancer_pools bp
-    ON t.CONTRACT_ADDRESS = bp.token
-   AND (t.to_address = bp.pool_address OR t.from_address = bp.pool_address)
+  JOIN balancer_pools bp  
+    ON (lower(t.origin_to_address) = lower(bp.pool_address) 
+    OR lower(t.origin_from_address) = lower(bp.pool_address)) 
+    AND t.contract_address=bp.token
   GROUP BY 1, 2, 3
 ),
 daily_balances AS (
@@ -40,13 +41,13 @@ daily_balances AS (
 price_data AS (
   -- Get the daily (midnight) price for tokens from the hourly price table.
   SELECT 
-    DATE(HOUR) AS day,
-    TOKEN_ADDRESS,
-    PRICE
+    DATE(hour) AS day,
+    token_address,
+    price
   FROM ethereum.price.ez_prices_hourly
-  WHERE CAST(HOUR AS TIME) = '00:00:00'
+  WHERE CAST(hour AS TIME) = '00:00:00'
 ),
-USD_VALUE AS (
+usd_value AS (
   -- Join the daily balances with price data to calculate USD value.
   SELECT
     db.day,
@@ -56,13 +57,13 @@ USD_VALUE AS (
     db.tokens_out,
     db.net_transfer,
     db.cumulative_balance,
-    pd.PRICE,
-    db.cumulative_balance * pd.PRICE AS usd_balance
+    pd.price,
+    db.cumulative_balance * pd.price AS usd_balance
   FROM daily_balances db
   LEFT JOIN price_data pd
-    ON LOWER(db.token) = LOWER(pd.TOKEN_ADDRESS)
+    ON LOWER(db.token) = LOWER(pd.token_address)
     AND db.day = pd.day
 )
 SELECT *
-FROM USD_VALUE
+FROM usd_value
 ORDER BY pool_address, token, day;
