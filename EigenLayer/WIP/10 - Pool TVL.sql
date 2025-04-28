@@ -134,3 +134,74 @@ final AS (
 )
 
 SELECT * FROM final WHERE price IS NOT NULL order by day desc;
+
+
+Query-3552897
+
+with 
+eigen_address as (
+select distinct concat('0x',substr(cast(topic_1 as varchar),27,64)) as to_
+from ethereum.core.ez_decoded_event_logs
+where lower(contract_address) = lower('0x91E677b07F7AF907ec9a428aafA9fc14a0d3A338')
+and lower(topic_0) = lower('0x21c99d0db02213c32fff5b05cf0a718ab5f858802b91498f80d82270289d856a')
+),
+
+eigen_balance_eth as (
+select day, sum(amount) as netflow from (
+select date_trunc('day', block_timestamp) as day, sum(deposit_amount) as amount
+from ethereum.beacon_chain.ez_deposits
+where cast(depositor as varchar) in (select to_ from eigen_address)
+or cast(withdrawal_address as varchar) in (select to_ from eigen_address)
+group by 1
+union all
+select 
+date_trunc('day', block_timestamp) as day, sum(case when withdrawal_amount>=32 then floor(withdrawal_amount)*-1 else 0 end) as amount
+from ethereum.beacon_chain.ez_withdrawals
+where cast(withdrawal_address as varchar) in (select to_ from eigen_address)
+and block_timestamp>=date('2023-06-09')
+group by 1
+)a
+group by 1),
+
+price as (
+select date_trunc('day',HOUR) as day, avg(price) as price
+from ethereum.price.ez_prices_hourly
+where token_address is null
+and symbol = 'ETH'
+and HOUR >= date('2023-01-01')
+group by 1
+)
+
+select a.day,netflow, amount, amount* price as usd_tvl from (
+select a.day, coalesce(netflow,0) as netflow, sum(coalesce(netflow,0)) over (order by a.day) as amount
+from query_3225625 a
+left join eigen_balance_eth b 
+on a.day=b.day)a
+left join price b
+on a.day=b.day
+where amount>0
+and a.day<=date(now())
+
+
+
+Query-3225625
+
+
+with days as (
+  select 
+    dateadd(day, seq4(), '2008-01-01') as day
+  from table(generator(rowcount => 10000)) -- generates 10,000 days
+  where dateadd(day, seq4(), '2008-01-01') <= '2035-01-01'
+
+  union all
+
+  select 
+    dateadd(day, seq4(), '2035-01-02') as day
+  from table(generator(rowcount => 10000)) 
+  where dateadd(day, seq4(), '2035-01-02') <= '2062-01-01'
+)
+
+select day from days
+order by day;
+
+
