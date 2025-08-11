@@ -1,0 +1,55 @@
+WITH usde_daily AS (
+  SELECT 
+    DATE_TRUNC('DAY', BLOCK_TIMESTAMP) AS dt,
+    SUM(
+      CASE 
+        WHEN LOWER(FROM_ADDRESS) = '0x0000000000000000000000000000000000000000' THEN AMOUNT_PRECISE
+        WHEN LOWER(TO_ADDRESS) = '0x0000000000000000000000000000000000000000' THEN -AMOUNT_PRECISE
+        ELSE 0
+      END
+    ) AS amount
+  FROM ETHEREUM_ONCHAIN_CORE_DATA.CORE.EZ_TOKEN_TRANSFERS
+  WHERE LOWER(CONTRACT_ADDRESS) = '0x4c9edd5852cd905f086c759e8383e09bff1e68b3'  -- USDe
+  GROUP BY 1
+),
+
+usdtb_daily AS (
+  SELECT 
+    DATE_TRUNC('DAY', BLOCK_TIMESTAMP) AS dt,
+    SUM(
+      CASE 
+        WHEN LOWER(FROM_ADDRESS) = '0x0000000000000000000000000000000000000000' THEN AMOUNT_PRECISE
+        WHEN LOWER(TO_ADDRESS) = '0x0000000000000000000000000000000000000000' THEN -AMOUNT_PRECISE
+        ELSE 0
+      END
+    ) AS amount
+  FROM ETHEREUM_ONCHAIN_CORE_DATA.CORE.EZ_TOKEN_TRANSFERS
+  WHERE LOWER(CONTRACT_ADDRESS) = '0xc139190f447e929f090edeb554d95abb8b18ac1c'  -- USDtb
+  GROUP BY 1
+),
+
+usde AS (
+  SELECT 
+    dt,
+    SUM(amount) OVER (ORDER BY dt ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_supply_usde
+  FROM usde_daily
+),
+
+usdtb AS (
+  SELECT 
+    dt,
+    SUM(amount) OVER (ORDER BY dt ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_supply_usdtb
+  FROM usdtb_daily
+)
+
+SELECT 
+  COALESCE(u.dt, t.dt) AS date,
+  COALESCE(u.total_supply_usde, 0) AS total_supply_usde,
+  COALESCE(t.total_supply_usdtb, 0) AS total_supply_usdtb,
+  COALESCE(u.total_supply_usde, 0) + COALESCE(t.total_supply_usdtb, 0) AS total_tvl
+FROM usde u
+FULL OUTER JOIN usdtb t ON u.dt = t.dt
+ORDER BY date DESC;
+
+
+--source-https://app.ethena.fi/dashboards/transparency
