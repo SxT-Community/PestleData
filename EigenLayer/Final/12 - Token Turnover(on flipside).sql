@@ -82,7 +82,7 @@ SELECT
   eigen_token_volume,
   eigen_token_usd_volume,
   circulating_supply AS circulating_token_supply,
-  eigen_token_volume / 1e9 AS token_turnover_fully_diluted,
+  eigen_token_volume / 1741879955 AS token_turnover_fully_diluted,
   eigen_token_volume / circulating_supply AS token_turnover_circulating_supply
 FROM matched_data
 WHERE row_num = 1
