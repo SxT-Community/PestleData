@@ -1,0 +1,12 @@
+{
+  "user": "",
+  "password": "",
+  "organization": "",
+  "account": "",
+  "warehouse": "",
+  "database": "ETHEREUM_ONCHAIN_CORE_DATA",
+  "schema": "",
+  "role": "",
+  "rpc_url": "",
+
+}
